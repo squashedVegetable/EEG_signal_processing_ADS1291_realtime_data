@@ -5,12 +5,24 @@ from scipy.signal import butter, filtfilt, iirnotch, welch, spectrogram
 
 SPS = 250  
 
-file_path = "raw_EEG_data/evening_tired_Andrej_2.txt"  
-df = pd.read_csv(file_path, sep='\t')  # tab-separated means \t
+file_path = "New_app_EEG_data/ADS1291.csv"
+blinks_path = "New_app_EEG_data/events.csv"
+df = pd.read_csv(file_path, comment="#", sep=",", skipinitialspace=True)
+blinks = pd.read_csv(blinks_path, comment="#")
 
-raw = df["EEG_CH1_RAW"]
-#bp_0_5_20 = df["EEG_CH1_BP_0p5_20"]
-raw = raw.values
+raw = df["ADS1291_EXG"].values
+raw = df["ADS1291_EXG"].astype(float).values
+index = df["sample_index"].values
+
+start_sec = 0
+end_sec = 0
+skippedSamples_start = int(start_sec * SPS)
+skippedSamples_end = int(end_sec*SPS)
+
+if skippedSamples_end == 0:
+    raw = raw[skippedSamples_start:]
+else:
+    raw = raw[skippedSamples_start:-skippedSamples_end]
 
 time = np.arange(len(raw)) / SPS
 
@@ -31,14 +43,21 @@ def notch_filter(data, quality=30):
 #remove DC offset. Optional i think maybe or something lol
 raw = raw - np.mean(raw)
 raw = notch_filter(raw)
-filtered_signal = bandpass_filter(raw, 0.5, 70, SPS)
+filtered_signal = bandpass_filter(raw, 0.5, 5, SPS)
 
 # ---- Plot ----
 plt.figure(figsize=(12, 6))
+t0_ms = blinks["event_timestamp_ms"].iloc[0]
+t_start_ms = blinks["event_timestamp_ms"].iloc[0]   
+blinks["t_sec"] = (blinks["event_timestamp_ms"] - t0_ms) / 1000.0
+blinks["t_sec"] -= start_sec
 
-plt.plot(time, filtered_signal, label="EEG signal", alpha=0.4)
+plt.plot(time, filtered_signal, label="EEG signal")
 #plt.plot(time, bp_0_5_20, label="Bandpass (0.5–20 Hz)", alpha=0.7)
 #plt.plot(time, delta, label="Delta (0.5–4 Hz)", linewidth=2)
+
+for _, row in blinks.iterrows():
+    plt.axvline(x=row["t_sec"], color="red", linestyle="--", alpha=0.6)
 
 plt.xlabel("Time (s)")
 plt.ylabel("Amplitude")
@@ -51,7 +70,7 @@ plt.savefig('plot_whole_signal')
 plt.show()
 
 '''
-def band_power(low=0.5, high=70):
+def band_power(low=0.5, high=20):
     mask = (fft_freqs >= low) & (fft_freqs <= high)
     return np.sum(np.abs(fft_results[mask])**2)
 '''
@@ -63,7 +82,7 @@ N = len(filtered_signal)
 fft_vals = np.fft.rfft(filtered_signal)
 fft_freqs = np.fft.rfftfreq(N, 1/SPS)
 
-fft_magnitude = np.abs(fft_vals) / N
+fft_magnitude = 2 * np.abs(fft_vals) / N
 
 plt.figure(figsize=(10, 5))
 plt.plot(fft_freqs, fft_magnitude)
@@ -72,25 +91,25 @@ plt.title("FFT of EEG Signal")
 plt.xlabel("Frequency (Hz)")
 plt.ylabel("Magnitude")
 plt.grid(True)
-plt.xlim(0.5, 70)
+plt.xlim(0.5, 20)
 
 plt.show()
 
-def band_power(low=0.5, high=70):
+def band_power(low=0.5, high=20):
     mask = (fft_freqs >= low) & (fft_freqs <= high)
     return np.sum(np.abs(fft_vals[mask])**2)
 
 freqs, times, Sxx = spectrogram(filtered_signal, SPS, nperseg=512, noverlap=256)
 
 plt.figure(figsize=(12, 6))
-plt.pcolormesh(times, freqs, Sxx, shading='gouraud')
+plt.pcolormesh(times, freqs, Sxx, shading='auto')
 
 plt.xlabel('Time (s)')
 plt.ylabel('Frequency (Hz)')
 plt.title('Spectrogram')
 plt.colorbar(label='Power')
 
-plt.ylim(0.5, 70)
+plt.ylim(0.5, 20)
 plt.show()
 
 #max_freq = 30 
@@ -116,7 +135,7 @@ plt.semilogy(freqs, psd)
 plt.title("Power Spectral Density (Welch)")
 plt.xlabel("Frequency (Hz)")
 plt.ylabel("Power")
-plt.xlim(0.5, 70)
+plt.xlim(0.5, 20)
 plt.grid(True)
 
 plt.show()
