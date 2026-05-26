@@ -9,18 +9,25 @@ with open("file_to_skip.txt", "w") as f:
     f.write(str(fileNumber))
 
 accuracies = []
-while fileNumber <= 6:
+while fileNumber <= 11:
     subprocess.run(["python3", "Classifier_our_data.py"])
     result = subprocess.run(["python3", "modell_test.py"],capture_output=True,text=True)
     accuracies.append(float(result.stdout.strip()))
 
     fileNumber = fileNumber +1
+    if fileNumber ==5: fileNumber +=1
     with open("file_to_skip.txt", "w") as f:
         f.write(str(fileNumber))
 
 print("The accuracies are:" ,accuracies)
 print("Mean of the accuracies is: ", np.mean(accuracies))
 print("standard deviation is: ", np.std(accuracies))
+with open("LOCV_results.txt", 'w') as f:
+    f.write(f"""The accuracies are: {accuracies}
+        Mean of the accuracies is: {np.mean(accuracies)}
+        Standard deviation is: {np.std(accuracies)}
+        """)
+
 '''
 pdf_folder = "./plots_LOCV/"
 merger = PdfMerger()

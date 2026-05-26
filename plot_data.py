@@ -3,16 +3,26 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import butter, filtfilt, iirnotch, welch, spectrogram
 from matplotlib.widgets import Button
+import math
 
 SPS = 250  
+GAIN = 6 #can be changed in app/in Java
+V_REF= 2.42 #default ref voltage
+INT_NORMILISATION = (2**23) - 1
 
-name = "Fabian"
-file_name = "ADS1291_" + name + ".csv"
-file_path = "New_app_EEG_data/" + file_name
-blinks_path = "New_app_EEG_data/events_" + name + ".csv"
+fileNumber = 3
+
+file_path = f"Our_data_classify/Data_19_01/{fileNumber}.csv"
+blinks_path = f"Our_data_classify/Data_19_01/e{fileNumber}.csv"
+
+#name = "Soheil"
+#file_name = "ADS1291_" + name + ".csv"
+#file_path = "New_app_EEG_data/" + file_name
+#blinks_path = "New_app_EEG_data/events_" + name + ".csv"
 df = pd.read_csv(file_path, comment="#", sep=",", skipinitialspace=True)
 #blinks = pd.read_csv(blinks_path)
 #blink_times = blinks["time_seconds"].values
+
 
 #blinks["time_seconds"] = blinks["time_seconds"] - 0.2
 #blink_times = blinks["time_seconds"].values
@@ -57,6 +67,7 @@ def notch_filter(data, quality=30):
 raw = raw - np.mean(raw)
 raw = notch_filter(raw)
 filtered_signal = bandpass_filter(raw, 0.5, 5, SPS)
+filtered_signal = filtered_signal/(GAIN*INT_NORMILISATION)*V_REF *1e6
 
 # ---- Plot ----
 time_sec = np.arange(len(raw)) / SPS
@@ -74,9 +85,9 @@ def add_blink(event):
 
 ax.plot(time_sec, filtered_signal)
 
-ax.set_title(f"EEG - {file_name}")
+ax.set_title(f"EEG - {fileNumber}")
 ax.set_xlabel("Time (s)")
-ax.set_ylabel("Amplitude")
+ax.set_ylabel("Amplitude (µV)")
 
 ax_button = plt.axes([0.8, 0.01, 0.1, 0.05])
 btn_add = Button(ax_button, "Add blink")
@@ -151,7 +162,7 @@ fig.canvas.mpl_connect("key_press_event", on_key)
 
 plt.xlabel("Time (s)")
 plt.ylabel("Amplitude")
-plt.title(f"EEG Signal - {file_name}")
+plt.title(f"EEG Signal - {fileNumber}")
 plt.legend()
 ax.grid(True)
 

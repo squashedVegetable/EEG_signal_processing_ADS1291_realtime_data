@@ -46,8 +46,8 @@ with open("window_size.yaml", "r") as f:
     step_size = int(config["step_size"] * SPS) #normally 0.1
 
 fileNumber = 1
-while fileNumber <=6: 
-    if str(fileNumber) == fileNumberToTest:
+while fileNumber <=11: 
+    if str(fileNumber) == fileNumberToTest or fileNumber == 5:
         fileNumber = fileNumber +1
         continue
     if fileNumber < 10: 
