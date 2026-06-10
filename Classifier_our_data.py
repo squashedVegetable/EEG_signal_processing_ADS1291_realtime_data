@@ -147,6 +147,20 @@ while fileNumber <=11:
 X_features = np.array(X_features)
 y_labels = np.array(y_labels)
 
+unique, counts = np.unique(y_labels, return_counts=True)
+
+for cls, count in zip(unique, counts):
+    print(f"Class {cls}: {count}")
+
+print("Percentage blink windows:", np.mean(y_labels) * 100)
+
+n0 = np.sum(y_labels == 0)
+n1 = np.sum(y_labels == 1)
+
+print(f"Class 0 (no blink): {n0}")
+print(f"Class 1 (blink): {n1}")
+print(f"Ratio 0:1 = {n0/n1:.2f}")
+
 scaler = StandardScaler()
 X_features_scaled = scaler.fit_transform(X_features)
 
@@ -157,3 +171,5 @@ print("model trained")
 
 joblib.dump(clf, "blink_model.pkl")
 joblib.dump(scaler, "scaler.pkl")
+
+print(f"{n0/n1:.2f}")

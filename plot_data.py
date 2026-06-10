@@ -4,16 +4,20 @@ import matplotlib.pyplot as plt
 from scipy.signal import butter, filtfilt, iirnotch, welch, spectrogram
 from matplotlib.widgets import Button
 import math
+import sys
+
 
 SPS = 250  
 GAIN = 6 #can be changed in app/in Java
 V_REF= 2.42 #default ref voltage
 INT_NORMILISATION = (2**23) - 1
 
-fileNumber = 3
+fileNumber = 1
+fileNumber = int(sys.argv[1])
 
-file_path = f"Our_data_classify/Data_19_01/{fileNumber}.csv"
-blinks_path = f"Our_data_classify/Data_19_01/e{fileNumber}.csv"
+file_path = f"signal_files/Data_19_01/Messdaten_19_01/{fileNumber}.csv"
+#file_path = f"Our_data_classify/Data_19_01/{fileNumber}.csv"
+blinks_path = f"signal_files/Events_19_01/e{fileNumber}.csv"
 
 #name = "Soheil"
 #file_name = "ADS1291_" + name + ".csv"
@@ -158,7 +162,6 @@ fig.canvas.mpl_connect("pick_event", on_pick)
 fig.canvas.mpl_connect("motion_notify_event", on_motion)
 fig.canvas.mpl_connect("button_release_event", on_release)
 fig.canvas.mpl_connect("key_press_event", on_key)
-
 
 plt.xlabel("Time (s)")
 plt.ylabel("Amplitude")

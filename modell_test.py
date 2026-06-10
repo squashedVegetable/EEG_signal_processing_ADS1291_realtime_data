@@ -4,7 +4,11 @@ import joblib
 from scipy.signal import butter, filtfilt, iirnotch
 from scipy.stats import skew, kurtosis
 import yaml
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import (
+    accuracy_score,
+    f1_score,
+    roc_auc_score
+)
 
 SPS = 250
 
@@ -83,4 +87,13 @@ X_new = scaler.transform(X_new)
 y_pred = clf.predict(X_new)
 
 accuracy = accuracy_score(y_true, y_pred)
-print(accuracy)
+
+f1 = f1_score(y_true, y_pred)
+
+y_prob = clf.predict_proba(X_new)[:, 1]
+if len(np.unique(y_true)) > 1:
+    auc = roc_auc_score(y_true, y_prob)
+else:
+    auc = np.nan
+
+print(f"{accuracy},{f1},{auc}")
