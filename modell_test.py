@@ -4,10 +4,15 @@ import joblib
 from scipy.signal import butter, filtfilt, iirnotch
 from scipy.stats import skew, kurtosis
 import yaml
+import os
+import sys
 from sklearn.metrics import (
     accuracy_score,
     f1_score,
-    roc_auc_score
+    roc_auc_score,
+    confusion_matrix, 
+    precision_score, 
+    recall_score
 )
 
 SPS = 250
@@ -96,4 +101,33 @@ if len(np.unique(y_true)) > 1:
 else:
     auc = np.nan
 
-print(f"{accuracy},{f1},{auc}")
+tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+precision = precision_score(y_true, y_pred, zero_division=0)
+recall = recall_score(y_true, y_pred, zero_division=0)
+time_minutes = len(raw) / (SPS * 60)
+fp_per_minute = fp / time_minutes if time_minutes > 0 else 0
+
+#print("TP, FP, FN, TN:", tp, fp, fn, tn)
+#print("Precision:", precision)
+#print("Recall:", recall)
+
+df_plot = pd.DataFrame({
+    'time': time_centers,
+    'y_true': y_true,
+    'y_prob': y_prob
+})
+os.makedirs("roc_data", exist_ok=True) 
+output_file = f"roc_data/run_{fileNumberToTest}_predictions.csv"
+df_plot.to_csv(output_file, index=False)
+
+output_parts = [
+    f"{float(accuracy):.6f}",
+    f"{float(f1):.6f}",
+    "nan" if np.isnan(auc) else f"{float(auc):.6f}",
+    str(int(tp)), str(int(fp)), str(int(fn)), str(int(tn)),
+    f"{float(precision):.6f}",
+    f"{float(recall):.6f}",
+    f"{float(fp_per_minute):.6f}"
+]
+
+print(",".join(output_parts))
