@@ -71,7 +71,7 @@ def notch_filter(data, quality=30):
 raw = raw - np.mean(raw)
 raw = notch_filter(raw)
 filtered_signal = bandpass_filter(raw, 0.5, 5, SPS)
-filtered_signal = filtered_signal/(GAIN*INT_NORMILISATION)*V_REF *1e6
+filtered_signal = filtered_signal/(GAIN*INT_NORMILISATION)*V_REF * 2 *1e6 #factor of 2 because of full scale range, 1e6 to convert to microvolts
 
 # ---- Plot ----
 time_sec = np.arange(len(raw)) / SPS
